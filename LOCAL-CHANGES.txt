@@ -1,0 +1,22 @@
+Independent community fork. Catalog submission/publication/validation status is
+recorded separately; a public GitHub repository does not imply vendor approval.
+
+Changes to the upstream source:
+- Apache Directory LDAP API 2.1.6 -> 2.1.9, including upstream security corrections.
+- Explicit configured DNS/IP identity check after the original PKIX trust check.
+- Apache HttpClient5 supplies the standards-aware endpoint verifier.
+- Connector version has its own suffix, never impersonates an official release.
+
+Source baseline: cde24ae9657a3cc124a9554131e283a0685cff61
+The upstream license/copyright files are retained. Review all dependency notices
+before publication. Build from a clean fixed baseline and run the upstream tests
+and deployment-specific TLS/provisioning/expiry/restart/failover/restore matrix.
+Previously validated binary/reproducibility evidence is separate from a vendor
+Catalog build; hash and re-test the artifact actually published by the vendor.
+No infrastructure configuration, accounts, network addresses, certificates,
+private keys, credentials, database, evidence or private Git history is included.
+
+The previous sentence refers to operational/private material. Unmodified public
+upstream OpenDJ test fixtures are retained under src/test/resources, including
+their synthetic test keystores and database. New TLS tests create disposable
+certificates under target only. They must not be used as deployment credentials.

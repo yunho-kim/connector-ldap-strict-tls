@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015-2022 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>connector-parent</artifactId>
+        <groupId>com.evolveum.polygon</groupId>
+        <version>1.5.3.0</version>
+    </parent>
+
+    <artifactId>connector-ldap</artifactId>
+    <version>3.10.2-hyse-strict-tls</version>
+    <packaging>jar</packaging>
+
+    <name>LDAP Connector</name>
+
+    <properties>
+        <connectorPackage>com.evolveum.polygon.connector.ldap</connectorPackage>
+        <connectorClass>LdapConnector</connectorClass>
+        <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+
+        <mina.version>2.2.9</mina.version>
+        <commons-io.version>2.22.0</commons-io.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>evolveum-releases</id>
+            <name>Evolveum Public Releases</name>
+            <url>https://nexus.evolveum.com/nexus/repository/public/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>evolveum-snapshots</id>
+            <name>Internal Releases</name>
+            <url>https://nexus.evolveum.com/nexus/repository/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>apache-snapshots</id>
+            <name>Apache Snapshots</name>
+            <url>https://repository.apache.org/snapshots/</url>
+        </repository>
+        <!--
+        We need this for Sleepycat JE, version 5.0.73 is released OK, but newer versions
+        (like 5.0.103) is in Maven central plugin repository, which is obviously wrong.
+        So we need Oracle's repo too.
+        -->
+        <repository>
+            <id>oracle</id>
+            <name>Oracle</name>
+            <url>https://download.oracle.com/maven/</url>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>${surefire.args}</argLine>
+                </configuration>
+                <!-- surefire-testng dependency needed until common-parent is updated to 1.5.3.0-SNAPSHOT at least -->
+                <!-- reason: maven by default uses junit platform therefore all testng tests are skipped silently -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-testng</artifactId>
+                        <version>3.5.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.api</groupId>
+            <artifactId>api-all</artifactId>
+            <version>2.1.9</version>
+            <exclusions>
+                <!-- Exclude SLF4J API from the lib to avoid bundling it with the
+                     connector. The SLF4J is already part of midPoint.
+                     If it was also bundled with the connector then we will
+                     have the same classes/interfaces loaded by two classloaders
+                     and that will cause problems. -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+
+                <!-- Excluded bundled mina-core because of CVE-2024-52046 (LDAP protocol is not affected)
+                    but automated scanning tools still reports it.
+                -->
+                <exclusion>
+                    <groupId>org.apache.mina</groupId>
+                    <artifactId>mina-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Avoid dependency on slf4j-jdk14 SLF4J bridge.
+             In midPoint the JUL is bridged back to SLF4J.
+             Even though the connector should use JUL,
+             bridge over a bridge is not a good idea. It causes
+             problems. Therefore we rather be non-compliant
+             than non-working. -->
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.mina</groupId>
+            <artifactId>mina-core</artifactId>
+            <version>${mina.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.12</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- TEST DEPENDENCIES -->
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj</artifactId>
+            <version>2.6.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-ldap-sdk</artifactId>
+            <version>2.6.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Needed for OpenDJ in tests -->
+        <dependency>
+            <groupId>com.sleepycat</groupId>
+            <artifactId>je</artifactId>
+            <version>5.0.103</version>
+            <!-- upgrade to 18.x is not possible with currently used OpenDJ -->
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>sbom</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <configuration>
+                            <projectType>library</projectType>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sbom-package</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dependencytrack</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.pmckeown</groupId>
+                        <artifactId>dependency-track-maven-plugin</artifactId>
+                        <version>1.10.2</version>
+                        <configuration>
+                            <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
+                            <apiKey>${env.DTRACK_TOKEN}</apiKey>
+                            <parentName>connector-ldap</parentName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>upload-bom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>upload-bom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

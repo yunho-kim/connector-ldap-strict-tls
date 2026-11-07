@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.jdb binary
+*-keystore binary
+*-truststore binary
+*.gz binary
