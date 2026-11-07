@@ -32,8 +32,8 @@
     <name>LDAP Connector</name>
 
     <properties>
-        <!-- Keep the tested stable framework instead of an inherited milestone. -->
-        <connId.version>1.6.0.0</connId.version>
+        <!-- Pin the upstream framework explicitly; its classes require JDK21+. -->
+        <connId.version>1.7.0.0-M0</connId.version>
         <connectorPackage>com.evolveum.polygon.connector.ldap</connectorPackage>
         <connectorClass>LdapConnector</connectorClass>
         <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>

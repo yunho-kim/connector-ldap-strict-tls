@@ -12,14 +12,14 @@ Version: **3.10.2-hyse-strict-tls**. License: **Apache-2.0**, with the upstream 
 * A trust-manager wrapper retains the original JSSE/PKIX trust decision and then checks the **configured** DNS name or IP SAN.
 * Endpoint identity is not inferred from reverse DNS, a resolved address, or an unrelated certificate CN when SANs are present.
 * Apache HttpClient5's hostname verifier supplies DNS/IP identity matching.
-* ConnId is pinned to stable **1.6.0.0**, avoiding the parent's inherited 1.7 milestone and its JDK21 requirement.
+* The upstream ConnId **1.7.0.0-M0** framework is explicitly pinned. Its classes require **JDK21+**.
 
 The runtime changes are limited to `pom.xml`, `ConfiguredHostTrustManager.java`, and `ServerConnectionPool.java`.
 They do not change account provisioning policy, directory schema, or the connector's public configuration property names.
 
 ## Build and tests
 
-Use a JDK 17 or later and Maven:
+Use a JDK 21 or later and Maven (the source target is 17, but ConnId itself requires 21):
 
 ```sh
 mvn -B -ntp -Dproject.build.outputTimestamp=2026-11-08T00:00:00Z package
