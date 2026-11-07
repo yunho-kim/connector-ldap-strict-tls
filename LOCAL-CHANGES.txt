@@ -6,6 +6,7 @@ Changes to the upstream source:
 - Explicit configured DNS/IP identity check after the original PKIX trust check.
 - Apache HttpClient5 supplies the standards-aware endpoint verifier.
 - Connector version has its own suffix, never impersonates an official release.
+- ConnId is pinned to stable 1.6.0.0 instead of the inherited 1.7.0.0-M0 milestone.
 
 Source baseline: cde24ae9657a3cc124a9554131e283a0685cff61
 The upstream license/copyright files are retained. Review all dependency notices
